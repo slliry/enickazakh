@@ -105,3 +105,45 @@ class MobilityProgram(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.host_institution} ({self.country})"
+
+
+class Application(models.Model):
+    """Модель заявки от пользователя."""
+    
+    STATUS_NEW = 'new'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_COMPLETED = 'completed'
+    STATUS_REJECTED = 'rejected'
+    
+    STATUS_CHOICES = [
+        (STATUS_NEW, _('Новая')),
+        (STATUS_IN_PROGRESS, _('В обработке')),
+        (STATUS_COMPLETED, _('Завершена')),
+        (STATUS_REJECTED, _('Отклонена')),
+    ]
+    
+    name = models.CharField(_('ФИО'), max_length=255)
+    email = models.EmailField(_('Email'))
+    phone = models.CharField(_('Телефон'), max_length=20)
+    subject = models.CharField(_('Тема'), max_length=255)
+    message = models.TextField(_('Сообщение'))
+    status = models.CharField(_('Статус'), max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
+    university = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL,
+        null=True, 
+        blank=True,
+        limit_choices_to={'role': User.UNIVERSITY},
+        related_name='applications',
+        verbose_name=_('ВУЗ')
+    )
+    created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    
+    class Meta:
+        verbose_name = _('заявка')
+        verbose_name_plural = _('заявки')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} - {self.subject} ({self.get_status_display()})"

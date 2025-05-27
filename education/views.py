@@ -2,11 +2,12 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Program, Accreditation, Publication, MobilityProgram
+from .models import Program, Accreditation, Publication, MobilityProgram, Application
 from .serializers import (
     ProgramSerializer, ProgramDetailSerializer,
     AccreditationSerializer, AccreditationDetailSerializer,
-    PublicationSerializer, MobilityProgramSerializer
+    PublicationSerializer, MobilityProgramSerializer,
+    ApplicationSerializer, ApplicationCreateSerializer
 )
 
 
@@ -88,3 +89,48 @@ class MobilityProgramViewSet(viewsets.ModelViewSet):
         active_programs = MobilityProgram.objects.filter(is_active=True)
         serializer = self.get_serializer(active_programs, many=True)
         return Response(serializer.data)
+
+
+class ApplicationViewSet(viewsets.ModelViewSet):
+    """ViewSet для работы с заявками."""
+    
+    queryset = Application.objects.all()
+    serializer_class = ApplicationSerializer
+    
+    def get_permissions(self):
+        """Определяет права доступа в зависимости от действия."""
+        if self.action == 'create':
+            permission_classes = [permissions.AllowAny]
+        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy', 'list']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+    
+    def get_serializer_class(self):
+        """Возвращает соответствующий сериализатор в зависимости от действия."""
+        if self.action == 'create':
+            return ApplicationCreateSerializer
+        return self.serializer_class
+    
+    def get_queryset(self):
+        """Фильтрует заявки в зависимости от роли пользователя."""
+        queryset = Application.objects.all()
+        user = self.request.user
+        
+        if user.is_authenticated:
+            if user.is_admin:
+                return queryset
+            elif user.is_university:
+                return queryset.filter(university=user)
+        
+        return Application.objects.none()
+    
+    @action(detail=False, methods=['get'])
+    def my_applications(self, request):
+        """Получение заявок текущего пользователя (для ВУЗов)."""
+        if request.user.is_authenticated and request.user.is_university:
+            applications = Application.objects.filter(university=request.user)
+            serializer = self.get_serializer(applications, many=True)
+            return Response(serializer.data)
+        return Response({"detail": "Необходима аутентификация как ВУЗ."}, status=403)

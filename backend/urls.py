@@ -24,7 +24,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from users.views import UserViewSet
 from education.views import (
     ProgramViewSet, AccreditationViewSet,
-    PublicationViewSet, MobilityProgramViewSet
+    PublicationViewSet, MobilityProgramViewSet,
+    ApplicationViewSet
 )
 
 # Создание роутера для API
@@ -34,6 +35,7 @@ router.register(r'programs', ProgramViewSet)
 router.register(r'accreditations', AccreditationViewSet)
 router.register(r'publications', PublicationViewSet)
 router.register(r'mobility-programs', MobilityProgramViewSet)
+router.register(r'applications', ApplicationViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,9 +43,6 @@ urlpatterns = [
     # API URLs
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
-    
-    # Регистрация ВУЗа (отдельный URL для удобства)
-    path('api/register-university/', UserViewSet.as_view({'post': 'register_university'}), name='register-university'),
     
     # API документация
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

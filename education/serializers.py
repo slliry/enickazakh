@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Program, Accreditation, Publication, MobilityProgram
+from .models import Program, Accreditation, Publication, MobilityProgram, Application
 
 User = get_user_model()
 
@@ -59,6 +59,31 @@ class MobilityProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = MobilityProgram
         fields = '__all__'
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели заявки."""
+    
+    university_name = serializers.ReadOnlyField(source='university.university_name')
+    status_display = serializers.ReadOnlyField(source='get_status_display')
+    
+    class Meta:
+        model = Application
+        fields = ['id', 'name', 'email', 'phone', 'subject', 'message', 
+                  'status', 'status_display', 'university', 'university_name',
+                  'created_at', 'updated_at']
+        read_only_fields = ['status', 'university', 'created_at', 'updated_at']
+
+
+class ApplicationCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания заявки."""
+    
+    class Meta:
+        model = Application
+        fields = ['name', 'email', 'phone', 'subject', 'message', 'university']
+        extra_kwargs = {
+            'university': {'required': False}
+        }
 
 
 # Расширенные сериализаторы для детального представления

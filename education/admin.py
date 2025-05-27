@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Program, Accreditation, Publication, MobilityProgram
+from .models import Program, Accreditation, Publication, MobilityProgram, Application
 
 
 @admin.register(Program)
@@ -42,3 +42,14 @@ class MobilityProgramAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'country', 'application_deadline')
     search_fields = ('name', 'description', 'host_institution', 'country', 'city')
     date_hierarchy = 'application_deadline'
+
+
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    """Административная панель для заявок."""
+    
+    list_display = ('name', 'email', 'phone', 'subject', 'status', 'university', 'created_at')
+    list_filter = ('status', 'created_at', 'university')
+    search_fields = ('name', 'email', 'phone', 'subject', 'message')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('created_at', 'updated_at')
