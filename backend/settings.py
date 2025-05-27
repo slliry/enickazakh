@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,11 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Сторонние приложения
+    'rest_framework',
+    'corsheaders',
+    'drf_spectacular',
+    
+    # Собственные приложения
+    'users',
+    'education',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -115,8 +127,46 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Пользовательская модель
+AUTH_USER_MODEL = 'users.User'
+
+# Настройки REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Настройки CORS
+CORS_ALLOW_ALL_ORIGINS = True  # Только для разработки, в продакшене нужно указать конкретные домены
+CORS_ALLOW_CREDENTIALS = True
+
+# Настройки Spectacular для документации API
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Образовательный портал API',
+    'DESCRIPTION': 'API для образовательного портала',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# Настройки для отправки электронной почты
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Для разработки
+DEFAULT_FROM_EMAIL = 'noreply@example.com'
+
+# URL фронтенда для формирования ссылок
+FRONTEND_URL = 'http://localhost:3000'  # Изменить на реальный URL в продакшене
